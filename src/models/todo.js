@@ -14,11 +14,25 @@ const deleteTodo = (id) => {
 };
 
 const getTodos = () => {
-    return knex.select("*").where({ is_deleted: false }).from(table);
+    return knex.select("todos.*, users.id, users.name").from(table)
+        .innerJoin('users', 'todos.user_id', 'users.id').where({ is_deleted: false });
 };
 
-const getTodosByUser = (user_id) => {
-    return knex.select("*").where({ is_deleted: false }).where({ user_id: user_id }).from(table);
+const getTodosByUser = async (user_id) => {
+    try {
+        const rows = await knex
+            .select('todos.id as todo_id', 'todos.updated_at', 'todos.created_at', 
+            'todos.image', 'todos.desc', 'todos.title', 'users.id as user_id', 
+            'users.name as user_name')
+            .from('todos')
+            .innerJoin('users', 'todos.user_id', 'users.id')
+            .where('todos.is_deleted', false)
+            .andWhere('users.id', user_id);
+
+        return rows; // Return the result of the query
+    } catch (error) {
+        throw error;
+    }
 };
 
 const getTodo = (id) => {

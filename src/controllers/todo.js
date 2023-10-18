@@ -91,6 +91,7 @@ const getTodos = async (req, res) => {
     try {
         const user_id = req.user.id;
         const rows = await model.getTodosByUser(user_id);
+
         res.status(200).json({
             error: false,
             message: "Todos received successfully.",
