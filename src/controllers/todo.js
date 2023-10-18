@@ -1,18 +1,30 @@
 const knex = require("../config/config");
 const model = require("../models/todo");
+const Joi = require('joi');
+const utility = require('../utility/functions')
 
 const createTodo = async (req, res) => {
     try {
         const schema = Joi.object({
             title: Joi.string().required(),
             desc: Joi.string().required(),
+            image: Joi.string().allow(null),
         });
         const { error } = schema.validate(req.body);
 
         if (error) {
             return res.status(400).json({ error: false, message: error.details[0].message });
         }
+
+        const dataUri = req.body.image;
+        if (dataUri) {
+            const url = utility.uploadImage(dataUri);
+            req.body.image = url;
+        } else {
+            req.body.image = null;
+        }
         req.body.user_id = req.user.id
+
         const data = await model.insertTodo(req.body);
         if (data) {
             res.status(200).json({
@@ -33,6 +45,7 @@ const updateTodo = async (req, res) => {
         const schema = Joi.object({
             title: Joi.string().required(),
             desc: Joi.string().required(),
+            image: Joi.string().allow(null),
         });
         const { error } = schema.validate(req.body);
 
@@ -47,6 +60,14 @@ const updateTodo = async (req, res) => {
                 error: true,
                 message: "Todo not found.",
             });
+        }
+
+        const dataUri = req.body.image;
+        if (dataUri) {
+            const url = utility.uploadImage(dataUri);
+            req.body.image = url;
+        } else {
+            req.body.image = null;
         }
         const update = await model.updateTodo(todoId, req.body);
         if (update) {
@@ -118,6 +139,11 @@ const getTodo = async (req, res) => {
         const todoId = req.params.todoId;
 
         data = await model.getTodo(todoId);
+
+        const imageName = data.image;
+        const dataUri = utility.imageToDataUri(imageName);
+        data.image = dataUri
+
         if (data) {
             res.json({
                 error: false,

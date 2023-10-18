@@ -10,7 +10,7 @@ const port = process.env.PORT || 8000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 
 app.use('/public', publicUrl);
 
